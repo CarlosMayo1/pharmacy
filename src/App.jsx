@@ -7,18 +7,16 @@
 import { useEffect } from 'react'
 import { supabase } from './utils/supabase.client'
 
-function App() {
-	useEffect(() => {
-		const getDataFromSupabase = async () => {
-			const { error, data } = await supabase.from('products').select()
-			return data
-		}
+// ===================
+// SUPABASE FUNCTIONS
+// ===================
+// insert new producto
+const insertNewProduct = async () => {
+	const { error } = await supabase.from('products').insert(oroduct)
+	return error
+}
 
-		const allProducts = getDataFromSupabase()
-		allProducts.then(response => {
-			console.log(response)
-		})
-	}, [])
+function App() {
 	return (
 		<div className='App'>
 			{/* container */}
