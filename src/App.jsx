@@ -4,8 +4,21 @@
 // 3. Llevar registro de productos que salen, la fecha en que salen, la cantidad que salen y la razon por la que salen
 // 4. Para este punto considero buena idea hacer una lista de razones por las que un producto puede salir
 // 5. Historial de ingreso de productos, historial de salida de productos
+import { useEffect } from 'react'
+import { supabase } from './utils/supabase.client'
 
 function App() {
+	useEffect(() => {
+		const getDataFromSupabase = async () => {
+			const { error, data } = await supabase.from('products').select()
+			return data
+		}
+
+		const allProducts = getDataFromSupabase()
+		allProducts.then(response => {
+			console.log(response)
+		})
+	}, [])
 	return (
 		<div className='App'>
 			{/* container */}
