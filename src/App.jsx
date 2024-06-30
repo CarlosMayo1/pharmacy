@@ -6,24 +6,64 @@
 // 5. Historial de ingreso de productos, historial de salida de productos
 import { useEffect } from 'react'
 import { supabase } from './utils/supabase.client'
+import { useForm } from 'react-hook-form'
 
 // ===================
 // SUPABASE FUNCTIONS
 // ===================
 // insert new producto
-const insertNewProduct = async () => {
-	const { error } = await supabase.from('products').insert(oroduct)
+const insertNewProduct = async product => {
+	const { error } = await supabase.from('products').insert(product)
 	return error
 }
 
 function App() {
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm()
+
+	const insertProductForm = handleSubmit(data => {
+		// getting data from the form
+		const newProduct = {
+			productName: data.productName,
+			productBrandId: data.productBrandId,
+			productCategoryId: data.productCategoryId,
+			productExpirationDate: data.productExpirationDate,
+			productIndications: data.productIndications,
+			productSpecification: data.productSpecification,
+			productObservations: data.productObservations,
+			productPrice: Number(data.productPrice),
+			productAmount: Number(data.productAmount),
+			productTypeId: data.productTypeId,
+			isStored: 0,
+			status: 1,
+		}
+		// defining the columns to be inserted in the database
+		insertNewProduct(newProduct)
+	})
+
+	useEffect(() => {
+		const fetchProduct = async () => {
+			const { error, data } = await supabase.from('products').select()
+			return data
+		}
+		fetchProduct().then(response => {
+			console.log(response)
+		})
+	})
+
 	return (
 		<div className='App'>
 			{/* container */}
 			<div className='max-w-7xl p-2'>
 				{/* Product form */}
 				<section className='flex justify-evenly'>
-					<form className='max-w-lg border border-black rounded-r p-2'>
+					<form
+						className='max-w-lg border border-black rounded-r p-2'
+						onSubmit={insertProductForm}
+					>
 						<h2 className='py-2 text-lg font-bold'>
 							Ingreso de nuevo producto
 						</h2>
@@ -34,6 +74,7 @@ function App() {
 								type='text'
 								name='productName'
 								id='productName'
+								{...register('productName')}
 							/>
 						</div>
 						<div className='flex flex-col mb-1'>
@@ -43,11 +84,18 @@ function App() {
 								type='select'
 								name='productType'
 								id='productType'
+								{...register('productTypeId')}
 							>
 								<option value=''>Seleccione el tipo de producto</option>
-								<option value='Jarabe'>Jarabe</option>
-								<option value='Tableta'>Tableta</option>
-								<option value='Ampolla'>Ampolla</option>
+								<option value='9500cecd-f171-4edd-b02a-2908d327909e'>
+									Jarabe
+								</option>
+								<option value='ca5b6a80-e285-485e-b276-1d39b9ba83f9'>
+									Tableta
+								</option>
+								<option value='3d3df0a7-d424-46c3-8b59-9cf614e761c6'>
+									Ampolla
+								</option>
 							</select>
 						</div>
 						<div className='flex flex-col mb-1'>
@@ -57,11 +105,18 @@ function App() {
 								type='select'
 								name='productCategory'
 								id='productCategory'
+								{...register('productCategoryId')}
 							>
 								<option value=''>Seleccione la categoría del producto</option>
-								<option value='Antibiótico'>Antibiótico</option>
-								<option value='Antihestamínico'>Antihestamínico</option>
-								<option value='Antigripal'>Antigripal</option>
+								<option value='254d9f0e-f81f-40c6-aeef-66171638a634'>
+									Antibiótico
+								</option>
+								<option value='b833140e-c969-49ec-a374-062478e414cd'>
+									Antihestamínico
+								</option>
+								<option value='dd9cc274-a30a-4227-be7b-9886762686d3'>
+									Antigripal
+								</option>
 							</select>
 						</div>
 						<div className='flex flex-col mb-1'>
@@ -71,11 +126,18 @@ function App() {
 								type='select'
 								name='productBrand'
 								id='productBrand'
+								{...register('productBrandId')}
 							>
 								<option value=''>Seleccione la marca del producto</option>
-								<option value='Portugal'>Portugal</option>
-								<option value='IQ Pharma'>IQ Pharma</option>
-								<option value='Bayer'>Bayer</option>
+								<option value='26d6d87b-d4ad-431b-9b34-f868dad25ffb'>
+									Portugal
+								</option>
+								<option value='IQ b10a8769-8b8c-4bf5-8e6c-f2519de4dfe6'>
+									IQ Pharma
+								</option>
+								<option value='d9ac537d-bcf3-4406-bfba-85b22a6bd8b2'>
+									Bayer
+								</option>
 							</select>
 						</div>
 						<div className='flex flex-col mb-1'>
@@ -87,6 +149,17 @@ function App() {
 								type='date'
 								name='productExpirationDate'
 								id='productExpirationDate'
+								{...register('productExpirationDate')}
+							/>
+						</div>
+						<div className='flex flex-col mb-1'>
+							<label htmlFor='productAmount'>Cantidad de producto</label>
+							<input
+								className='border border-black '
+								type='number'
+								name='productAmount'
+								id='productAmount'
+								{...register('productAmount')}
 							/>
 						</div>
 						<div className='flex flex-col mb-1'>
@@ -96,10 +169,12 @@ function App() {
 								type='number'
 								name='productPrice'
 								id='productPrice'
+								step={'0.01'}
+								{...register('productPrice')}
 							/>
 						</div>
 						<div className='flex flex-col mb-1'>
-							<label htmlFor='productSpecifications'>
+							<label htmlFor='productSpecification'>
 								Especificaciones del producto
 							</label>
 							<textarea
@@ -107,8 +182,9 @@ function App() {
 								width={3}
 								className='border border-black '
 								type='text'
-								name='productSpecifications'
-								id='productSpecifications'
+								name='productSpecification'
+								id='productSpecification'
+								{...register('productSpecification')}
 							/>
 						</div>
 						<div className='flex flex-col mb-1'>
@@ -122,6 +198,7 @@ function App() {
 								type='text'
 								name='productIndications'
 								id='productIndications'
+								{...register('productIndications')}
 							/>
 						</div>
 						<div className='flex flex-col mb-1'>
@@ -133,6 +210,7 @@ function App() {
 								type='text'
 								name='productObservations'
 								id='productObservations'
+								{...register('productObservations')}
 							/>
 						</div>
 						<div className='text-center'>
