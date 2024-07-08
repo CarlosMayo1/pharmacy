@@ -128,8 +128,6 @@ function App() {
 			item => item.products.productId === data.productId,
 		)
 
-		console.log(productInContainer)
-
 		// already exists a product in the selected container
 		if (
 			productInContainer.length > 0 &&
@@ -143,7 +141,13 @@ function App() {
 				data.productId,
 				data.containerId,
 				updateProductContainerAmount,
-			)
+			).then(() => {
+				// ⚠️ execute this function after saving
+				if (Number(data.productContainerAmount) === productAvailable) {
+					// changes state of the product from 0 (false) to 1 (true)
+					updateAvailabilityOfProduct(data.productId)
+				}
+			})
 		} else {
 			const storeProduct = {
 				productId: data.productId,
@@ -151,22 +155,14 @@ function App() {
 				productContainerAmount: data.productContainerAmount,
 			}
 
-			insertProductsInContainer(storeProduct)
+			insertProductsInContainer(storeProduct).then(() => {
+				// ⚠️ execute this function after saving
+				if (Number(data.productContainerAmount) === productAvailable) {
+					// changes state of the product from 0 (false) to 1 (true)
+					updateAvailabilityOfProduct(data.productId)
+				}
+			})
 		}
-
-		// ⚠️ execute this function after saving
-		if (Number(data.productContainerAmount) === productAvailable) {
-			// changes state of the product from 0 (false) to 1 (true)
-			updateAvailabilityOfProduct(data.productId)
-		}
-
-		// [
-		//  {productId: 1235, containerId: 129321, productAmount: 20}
-		//  {productId: 1238, containerId: 129321, productAmount: 10}
-		//  {productId: 1236, containerId: 129322, productAmount: 30}
-		//  {productId: 1237, containerId: 129322, productAmount: 40}
-		//  {productId: 1235, containerId: 129322, productAmount: 40}
-		// ]
 	})
 
 	const selectContainerHandler = e => {
@@ -175,10 +171,6 @@ function App() {
 			setproductsStoredInSelectedContainer(response)
 		})
 	}
-
-	// const storeListOfProducts = () => {
-	// 	storeProductsInContainer(productsStored)
-	// }
 
 	const selectProductHandler = e => {
 		const selectedProductId = e.target.value
@@ -496,14 +488,6 @@ function App() {
 									))}
 								</tbody>
 							</table>
-						</div>
-						<div className='text-center'>
-							<button
-								className='bg-gray-400 rounded-md px-1.5 py-1 text-white'
-								// onClick={storeListOfProducts}
-							>
-								Completar
-							</button>
 						</div>
 					</div>
 					{/* Container form */}
