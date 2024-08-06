@@ -1,17 +1,24 @@
+import { Routes, Route } from 'react-router-dom'
+import Home from './components/Home'
+import NewProduct from './components/NewProduct'
+import Products from './components/Products'
+import ProductRefill from './components/ProductRefill'
+import ProductRefillByContainer from './components/ProductRefillByContainer'
+
 function App() {
 	return (
 		<div className='App'>
-			<div className='grid grid-cols-[300px,1fr]'>
-				<div>
-					<h2>Menú principal</h2>
-					<nav>
-						<ul>
-							<li>Productos</li>
-							<li>Almacen</li>
-						</ul>
-					</nav>
-				</div>
-			</div>
+			<Routes>
+				<Route path='/' element={<Home />}>
+					<Route path='/new-product' element={<NewProduct />} />
+					<Route path='/products' element={<Products />} />
+					<Route path='/product-refill' element={<ProductRefill />} />
+					<Route
+						path='/product-refill-by-container'
+						element={<ProductRefillByContainer />}
+					/>
+				</Route>
+			</Routes>
 		</div>
 	)
 }
