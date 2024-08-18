@@ -17,6 +17,11 @@ function Home() {
 								<Link to='new-product'>Nuevo producto</Link>
 							</li>
 							<li className='ml-2'>
+								<Link to='store-product-by-container'>
+									Almacenar producto por contenedor
+								</Link>
+							</li>
+							<li className='ml-2'>
 								<Link to='products'>Productos</Link>
 							</li>
 							<li className='ml-2'>
