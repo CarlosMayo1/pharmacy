@@ -15,6 +15,7 @@ const fetchAvailableContainers = async () => {
 	const { data, error } = await supabase
 		.from('containers')
 		.select('containerId, containerCode')
+		.neq('status', 0)
 	return data
 }
 
@@ -22,7 +23,7 @@ const fetchProductsInSelectedContainer = async containerId => {
 	const { error, data } = await supabase
 		.from('product_container')
 		.select(
-			'productContainerId, productId, products(productName, productExpirationDate), productContainerAmount',
+			'productContainerId, containerId, productId, products(productName, productExpirationDate), productContainerAmount',
 		)
 		.eq('containerId', containerId)
 	return data
@@ -72,6 +73,14 @@ const deleteProductInContainer = async productContainerId => {
 	return error
 }
 
+const changeStateOfContainer = async (status, id) => {
+	const { error } = await supabase
+		.from('containers')
+		.update({ status: status })
+		.eq('containerId', id)
+	return error
+}
+
 const StoreProductsByContainer = () => {
 	const [productsToBeStored, setProductsToBeStored] = useState([])
 	const [availableContainers, setAvailableContainers] = useState([])
@@ -88,12 +97,7 @@ const StoreProductsByContainer = () => {
 		reset,
 		setError,
 		setValue,
-	} = useForm({
-		defaultValues: {
-			productsToBeStored: '',
-			productAmount: '',
-		},
-	})
+	} = useForm()
 
 	const pickContainerHandler = containerInfo => {
 		fetchProductsInSelectedContainer(containerInfo.containerId)
@@ -131,11 +135,12 @@ const StoreProductsByContainer = () => {
 	}
 
 	const stockByContainerHandler = handleSubmit(data => {
+		// ⚠️ avoids sending multiples query to database, so put a loading and blocks the button when inserting, and updating
 		// avoids to send info to database without container id
 		if (!container) {
 			setFormMessage({
-				status: 'ERROR',
-				message: 'Se necesita incluir un contenedor',
+				status: FORM_MESSAGE.error,
+				message: FORM_MESSAGE.emptyContainer,
 			})
 			return
 		}
@@ -164,7 +169,7 @@ const StoreProductsByContainer = () => {
 				container.containerId,
 				updatedAmount,
 			)
-				.then(response => console.log(response))
+				.then(() => {})
 				.finally(() => {
 					// resets the form
 					reset()
@@ -183,11 +188,29 @@ const StoreProductsByContainer = () => {
 					}
 
 					// updates products in selected container
-					fetchProductsInSelectedContainer(container.containerId).then(
-						response => {
+					fetchProductsInSelectedContainer(container.containerId)
+						.then(response => {
 							setProductsInSelectedContainer(response)
-						},
-					)
+						})
+						.finally(() =>
+							// updates state of the form
+							setFormMessage({
+								status: FORM_MESSAGE.success,
+								message: FORM_MESSAGE.update,
+							}),
+						)
+
+					// if the checkbox is clicked it means the container is full
+					if (data.isContainerFull) {
+						console.log('working')
+						changeStateOfContainer(0, container.containerId)
+							.then(response => console.log(response))
+							.finally(() => {
+								fetchAvailableContainers().then(response => {
+									setAvailableContainers(response)
+								})
+							})
+					}
 				})
 			// shows a message that the process was successful
 			return
@@ -216,31 +239,84 @@ const StoreProductsByContainer = () => {
 							})
 						})
 				}
-				// resets the form
-				reset()
-				setAmountOfSelectedProduct(0) // resets to zero
+
 				// updates products in selected container
-				fetchProductsInSelectedContainer(container.containerId).then(
-					response => {
+				fetchProductsInSelectedContainer(container.containerId)
+					.then(response => {
 						setProductsInSelectedContainer(response)
-					},
-				)
+					})
+					.finally(() => {
+						// updates form message
+						setFormMessage({
+							status: FORM_MESSAGE.success,
+							message: FORM_MESSAGE.insert,
+						})
+					})
+
+				// if the checkbox is clicked it means the container is full
+				if (data.isContainerFull) {
+					console.log('working')
+					changeStateOfContainer(0, container.containerId)
+						.then(response => console.log(response))
+						.finally(() => {
+							fetchAvailableContainers().then(response => {
+								setAvailableContainers(response)
+							})
+						})
+				}
 			})
+
+		// resets the form
+		reset()
+		setAmountOfSelectedProduct(0) // resets to zero
 	})
 
-	const onRemoveProductInContainer = (productContainerId, productId) => {
-		console.log(productContainerId)
+	const onRemoveProductInContainer = (
+		productContainerId,
+		productId,
+		containerId,
+	) => {
+		console.log(containerId)
 		deleteProductInContainer(productContainerId).then(() => {
 			// I don't if it is necessary to add a conditional here
-			changeStatusOfStoreProducts(0, productId).then(() => {
+			changeStatusOfStoreProducts(0, productId).finally(() => {
 				// updates products in selected container
-				fetchProductsInSelectedContainer(container.containerId).then(
-					response => {
+				fetchProductsInSelectedContainer(container.containerId)
+					.then(response => {
 						setProductsInSelectedContainer(response)
-					},
-				)
+					})
+					.finally(() => {
+						setFormMessage({
+							status: FORM_MESSAGE.success,
+							message: FORM_MESSAGE.delete,
+						})
+					})
+
+				// updates products to be stored
+				fetchProducts().then(response => {
+					setProductsToBeStored(response)
+				})
 			})
 		})
+
+		// update the state of the container
+		changeStateOfContainer(1, containerId)
+			.then(response => console.log(response))
+			.finally(() => {
+				fetchAvailableContainers().then(response => {
+					setAvailableContainers(response)
+				})
+			})
+	}
+
+	// Form message
+	const FORM_MESSAGE = {
+		success: 'SUCCESS',
+		error: 'ERROR',
+		emptyContainer: 'Es necesario un contenedor',
+		insert: 'Producto insertado correctamente',
+		update: 'Producto actualizado correctamente',
+		delete: 'Producto eliminado correctamente',
 	}
 
 	useEffect(() => {
@@ -253,6 +329,13 @@ const StoreProductsByContainer = () => {
 			setAvailableContainers(response)
 		})
 	}, [])
+
+	// it is working correctly
+	useEffect(() => {
+		setTimeout(() => {
+			setFormMessage(null)
+		}, 5000)
+	}, [formMessage])
 
 	return (
 		<section>
@@ -391,7 +474,16 @@ const StoreProductsByContainer = () => {
 								</p>
 							)}
 						</div>
-
+						<div className='mb-2'>
+							<label>¿Está lleno el contenedor?</label>
+							<input
+								type='checkbox'
+								{...register('isContainerFull')}
+								className='ml-2'
+								name='isContainerFull'
+								id='isContainerFull'
+							/>
+						</div>
 						<div className='text-center'>
 							<button className='px-2 py-2 font-bold text-white bg-green-500 text-sm rounded-md mb-2'>
 								Almacenar
@@ -429,6 +521,7 @@ const StoreProductsByContainer = () => {
 														onRemoveProductInContainer(
 															product.productContainerId,
 															product.productId,
+															product.containerId,
 														)
 													}
 												>

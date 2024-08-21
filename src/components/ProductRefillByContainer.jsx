@@ -1,3 +1,10 @@
+import { supabase } from '../utils/supabase.client'
+
+// supabase
+const fetchProductsByContainer = async () => {
+	const { error, data } = await supabase.from('product_container').select()
+}
+
 const ProductRefillByContainer = () => {
 	return (
 		<section>
