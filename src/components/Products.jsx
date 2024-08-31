@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../utils/supabase.client'
 import { useForm } from 'react-hook-form'
+import Spinner from './Spinner'
 
 // Supabase
 const fetchProducts = async () => {
@@ -182,6 +183,7 @@ const fetchFilteredProductsByAllFilters = async (
 
 const Products = () => {
 	const [products, setProducts] = useState([])
+	const [message, setMessage] = useState(null)
 	const { handleSubmit, register } = useForm()
 
 	const onFilteredProductsHandler = handleSubmit(data => {
@@ -193,7 +195,7 @@ const Products = () => {
 			data.filterByDate === ''
 		) {
 			fetchFilteredProductsByCode(data.filterByCode).then(response =>
-				console.log(response),
+				setProducts(response),
 			)
 		}
 
@@ -209,7 +211,7 @@ const Products = () => {
 				const listOfFilteredProducts = response.filter(
 					product => product.products !== null,
 				)
-				console.log(listOfFilteredProducts)
+				setProducts(listOfFilteredProducts)
 			})
 		}
 
@@ -225,7 +227,7 @@ const Products = () => {
 				const listOfFilteredProducts = response.filter(
 					product => product.products !== null,
 				)
-				console.log(listOfFilteredProducts)
+				setProducts(listOfFilteredProducts)
 			})
 		}
 
@@ -237,7 +239,7 @@ const Products = () => {
 			data.filterByAmount !== ''
 		) {
 			fetchFilteredProductsByAmount(data.filterByAmount).then(response => {
-				console.log(response)
+				setProducts(response)
 			})
 		}
 
@@ -256,7 +258,7 @@ const Products = () => {
 				const filteredListOfProducts = response.filter(
 					product => product.products !== null,
 				)
-				console.log(filteredListOfProducts)
+				setProducts(filteredListOfProducts)
 			})
 		}
 
@@ -393,7 +395,6 @@ const Products = () => {
 
 	useEffect(() => {
 		fetchProducts().then(response => {
-			console.log(response)
 			setProducts(response)
 		})
 	}, [])
@@ -457,49 +458,54 @@ const Products = () => {
 					</div>
 				</form>
 			</div>
-			<table className='border border-black'>
-				<thead>
-					<tr>
-						<th className='border border-black'>Nombre</th>
-						<th className='border border-black'>Tipo</th>
-						<th className='border border-black'>Cantidad</th>
-						<th className='border border-black'>Vencimiento</th>
-						<th className='border border-black'>Observaciones</th>
-						<th className='border border-black'>Contenedor</th>
-						<th className='border border-black'>Acción</th>
-					</tr>
-				</thead>
-				<tbody>
-					{products.map(product => (
-						<tr key={product.productContainerId}>
-							<td className='border border-black'>
-								{product.products.productName}
-							</td>
-							<td className='border border-black'>
-								{product.products.productType.productTypeName}
-							</td>
-							<td className='border border-black'>
-								{product.productContainerAmount}
-							</td>
-							<td className='border border-black'>
-								{product.products.productExpirationDate}
-							</td>
-							<td className='border border-black'>
-								{product.products.productObservations}
-							</td>
-							<td className='border border-black'>
-								{product.containers.containerCode}
-							</td>
-							<td className='border border-black'>
-								<div>
-									<button>Mover</button>
-									{/* <button>Eliminar</button> */}
-								</div>
-							</td>
+			{/* ⚠️ fix the appearance of this code */}
+			{products.length === 0 ? (
+				<Spinner />
+			) : (
+				<table className='border border-black'>
+					<thead>
+						<tr>
+							<th className='border border-black'>Nombre</th>
+							<th className='border border-black'>Tipo</th>
+							<th className='border border-black'>Cantidad</th>
+							<th className='border border-black'>Vencimiento</th>
+							<th className='border border-black'>Observaciones</th>
+							<th className='border border-black'>Contenedor</th>
+							<th className='border border-black'>Acción</th>
 						</tr>
-					))}
-				</tbody>
-			</table>
+					</thead>
+					<tbody>
+						{products.map(product => (
+							<tr key={product.productContainerId}>
+								<td className='border border-black'>
+									{product.products.productName}
+								</td>
+								<td className='border border-black'>
+									{product.products.productType.productTypeName}
+								</td>
+								<td className='border border-black'>
+									{product.productContainerAmount}
+								</td>
+								<td className='border border-black'>
+									{product.products.productExpirationDate}
+								</td>
+								<td className='border border-black'>
+									{product.products.productObservations}
+								</td>
+								<td className='border border-black'>
+									{product.containers.containerCode}
+								</td>
+								<td className='border border-black'>
+									<div>
+										<button>Mover</button>
+										{/* <button>Eliminar</button> */}
+									</div>
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			)}
 		</section>
 	)
 }
