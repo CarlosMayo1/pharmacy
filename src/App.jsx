@@ -1,8 +1,8 @@
 import { Routes, Route } from 'react-router-dom'
 import Home from './components/Home'
 import NewProduct from './components/NewProduct'
-import StoreProductsByContainer from './components/StoreProductsByContainer'
-import Products from './components/Products'
+import StoreProductsByContainer from './components/StoreProductsByContainer/StoreProductsByContainer'
+import Products from './components/Products/Products'
 import ProductRefill from './components/ProductRefill'
 import ProductRefillByContainer from './components/ProductRefillByContainer'
 

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../utils/supabase.client'
+import { supabase } from '../../utils/supabase.client'
 import { useForm } from 'react-hook-form'
-import Spinner from './Spinner'
+import Spinner from '../UI/Spinner'
+import ProductContainerModal from './ProductContainerModal'
 
 // Supabase
 const fetchProducts = async () => {
@@ -181,12 +182,21 @@ const fetchFilteredProductsByAllFilters = async (
 	return data
 }
 
+const fetchContainers = async () => {
+	const { error, data } = await supabase.from('containers').select()
+	return data
+}
+
 const Products = () => {
 	const [products, setProducts] = useState([])
-	const [message, setMessage] = useState(null)
+	const [containers, setContainers] = useState([])
+	const [selectedProduct, setSelectedProduct] = useState({})
+	const [loading, setLoading] = useState(true)
+	const [showContainerModal, setShowContainerModal] = useState(false)
 	const { handleSubmit, register } = useForm()
 
 	const onFilteredProductsHandler = handleSubmit(data => {
+		setLoading(true)
 		// fiilter by container code
 		if (
 			data.filterByCode !== '' &&
@@ -391,10 +401,29 @@ const Products = () => {
 				console.log(filteredProducts)
 			})
 		}
+
+		setLoading(false)
 	})
+
+	const openContainerModalHandler = product => {
+		console.log(product)
+		// fetch all containers
+		fetchContainers().then(response => {
+			// fitlered different containers thant the selected one
+			const filteredContainers = response.filter(
+				container =>
+					container.containerCode !== product.containers.containerCode,
+			)
+			setContainers(filteredContainers)
+		})
+
+		setShowContainerModal(true)
+		setSelectedProduct(product)
+	}
 
 	useEffect(() => {
 		fetchProducts().then(response => {
+			setLoading(false)
 			setProducts(response)
 		})
 	}, [])
@@ -457,11 +486,21 @@ const Products = () => {
 						</button>
 					</div>
 				</form>
+				{showContainerModal && (
+					<ProductContainerModal
+						isOpen={showContainerModal}
+						selectedProduct={selectedProduct}
+						setShowContainerModal={setShowContainerModal}
+						containers={containers}
+						fetchProducts={fetchProducts}
+						setProducts={setProducts}
+					/>
+				)}
 			</div>
 			{/* ⚠️ fix the appearance of this code */}
-			{products.length === 0 ? (
+			{loading ? (
 				<Spinner />
-			) : (
+			) : products.length > 0 ? (
 				<table className='border border-black'>
 					<thead>
 						<tr>
@@ -497,7 +536,12 @@ const Products = () => {
 								</td>
 								<td className='border border-black'>
 									<div>
-										<button>Mover</button>
+										<button
+											className='bg-blue-400 px-2 py-1.5 text-sm text-white font-bold rounded-md'
+											onClick={() => openContainerModalHandler(product)}
+										>
+											Mover
+										</button>
 										{/* <button>Eliminar</button> */}
 									</div>
 								</td>
@@ -505,6 +549,8 @@ const Products = () => {
 						))}
 					</tbody>
 				</table>
+			) : (
+				<p>No hay productos</p>
 			)}
 		</section>
 	)

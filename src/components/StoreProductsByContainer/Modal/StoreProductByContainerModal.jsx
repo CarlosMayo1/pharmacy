@@ -1,23 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, Fragment } from 'react'
+import { Transition, Dialog } from '@headlessui/react'
+import { supabase } from '../../../utils/supabase.client'
 import { useForm } from 'react-hook-form'
-import { supabase } from '../utils/supabase.client'
+import ProductsInSelectedContainer from '../Table/ProductsInSelectedContainer'
 
-// supabase
-const fetchProducts = async () => {
-	const { data, error } = await supabase
-		.from('products')
-		.select('productId, productName, productAmount, productExpirationDate')
-		.neq('isStored', 1)
-	return data
-}
-
-const fetchAvailableContainers = async () => {
-	const { data, error } = await supabase
-		.from('containers')
-		.select('containerId, containerCode')
-		.neq('status', 0)
-	return data
-}
+// ====================
+// SUPABASE FUNCTIONS
+// ====================
 
 const fetchProductsInSelectedContainer = async containerId => {
 	const { error, data } = await supabase
@@ -73,6 +62,17 @@ const deleteProductInContainer = async productContainerId => {
 	return error
 }
 
+const updateProductContainer = async (
+	updatedContainerId,
+	productContainerId,
+) => {
+	const { error } = await supabase
+		.from('product_container')
+		.update({ containerId: updatedContainerId })
+		.eq('productContainerId', productContainerId)
+	return error
+}
+
 const changeStateOfContainer = async (status, id) => {
 	const { error } = await supabase
 		.from('containers')
@@ -81,15 +81,17 @@ const changeStateOfContainer = async (status, id) => {
 	return error
 }
 
-const StoreProductsByContainer = () => {
-	const [productsToBeStored, setProductsToBeStored] = useState([])
-	const [availableContainers, setAvailableContainers] = useState([])
+const StoreProductByContainerModal = ({
+	isOpen,
+	setShowContainerModal,
+	productsInSelectedContainer,
+	container,
+	formMessage,
+	setFormMessage,
+	productsToBeStored,
+	FORM_MESSAGE,
+}) => {
 	const [amountOfSelectedProduct, setAmountOfSelectedProduct] = useState(0)
-	const [productsInSelectedContainer, setProductsInSelectedContainer] =
-		useState([])
-	const [container, setContainer] = useState(null)
-	const [formMessage, setFormMessage] = useState({})
-
 	const {
 		register,
 		handleSubmit,
@@ -99,16 +101,12 @@ const StoreProductsByContainer = () => {
 		setValue,
 	} = useForm()
 
-	const pickContainerHandler = containerInfo => {
-		fetchProductsInSelectedContainer(containerInfo.containerId)
-			.then(response => {
-				setProductsInSelectedContainer(response)
-			})
-			.finally(() => {
-				// gets containers information
-				setContainer(containerInfo)
-			})
-		setFormMessage(null)
+	// ======================
+	// MODAL FUNCTIONS
+	// ======================
+
+	const closeContainerModalHandler = () => {
+		setShowContainerModal(false)
 	}
 
 	const onSelectProductHandler = e => {
@@ -309,235 +307,141 @@ const StoreProductsByContainer = () => {
 			})
 	}
 
-	// Form message
-	const FORM_MESSAGE = {
-		success: 'SUCCESS',
-		error: 'ERROR',
-		emptyContainer: 'Es necesario un contenedor',
-		insert: 'Producto insertado correctamente',
-		update: 'Producto actualizado correctamente',
-		delete: 'Producto eliminado correctamente',
-	}
-
-	useEffect(() => {
-		fetchProducts().then(response => {
-			console.log(response)
-			setProductsToBeStored(response)
-		})
-		fetchAvailableContainers().then(response => {
-			console.log(response)
-			setAvailableContainers(response)
-		})
-	}, [])
-
-	// it is working correctly
-	useEffect(() => {
-		setTimeout(() => {
-			setFormMessage(null)
-		}, 5000)
-	}, [formMessage])
-
 	return (
-		<section>
-			<h1 className='text-lg font-bold my-2'>
-				Almacenar productos por contenedor
-			</h1>
-			<div className='flex'>
-				<div>
-					<h2 className='font-bold '>Listado de productos pendientes</h2>
-					<table>
-						<thead>
-							<tr>
-								<th className='border border-black'>Producto</th>
-								<th className='border border-black'>Cantidad</th>
-								<th className='border border-black'>Fecha de vencimiento</th>
-							</tr>
-						</thead>
-						<tbody>
-							{productsToBeStored.map(product => (
-								<tr key={product.productAmount}>
-									<td className='border border-black'>{product.productName}</td>
-									<td className='border border-black'>
-										{product.productAmount}
-									</td>
-									<td className='border border-black'>
-										{product.productExpirationDate}
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
-				<div className='ml-4'>
-					<h2 className='font-bold'>Contenedores disponibles</h2>
-					<table>
-						<thead>
-							<tr>
-								<th className='border border-black'>Contenedor</th>
-								<th className='border border-black'>Accion</th>
-							</tr>
-						</thead>
-						<tbody>
-							{availableContainers.map(container => (
-								<tr key={container.containerId}>
-									<td className='border border-black'>
-										{container.containerCode}
-									</td>
-									<td className='border border-black'>
-										<div>
-											{/* <button
-												type='button'
-												className='px-2 py-2 rounded-md text-white bg-blue-400 font-bold text-sm'
+		<Transition appear show={isOpen} as={Fragment}>
+			<Dialog
+				as='div'
+				className='relative z-10'
+				onClose={closeContainerModalHandler}
+			>
+				<Transition.Child
+					as={Fragment}
+					enter='ease-out duration-300'
+					enterFrom='opacity-0'
+					enterTo='opacity-100'
+					leave='ease-in duration-200'
+					leaveFrom='opacity-100'
+					leaveTo='opacity-0'
+				>
+					<div className='fixed inset-0 bg-black/25' />
+				</Transition.Child>
+
+				<div className='fixed inset-0 overflow-y-auto'>
+					<div className='flex min-h-full items-center justify-center p-4 text-center'>
+						<Transition.Child
+							as={Fragment}
+							enter='ease-out duration-300'
+							enterFrom='opacity-0 scale-95'
+							enterTo='opacity-100 scale-100'
+							leave='ease-in duration-200'
+							leaveFrom='opacity-100 scale-100'
+							leaveTo='opacity-0 scale-95'
+						>
+							<Dialog.Panel className='w-full max-w-xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
+								<Dialog.Title
+									as='h3'
+									className='text-lg font-medium leading-6 text-gray-900'
+								>
+									Almacenar en Contenedor
+								</Dialog.Title>
+								<div>
+									<h3
+										className={`mb-2 font-bold ${
+											formMessage?.status === 'ERROR'
+												? 'text-red-500'
+												: 'text-green-500'
+										}`}
+									>
+										{formMessage?.message}
+									</h3>
+
+									<form onSubmit={stockByContainerHandler}>
+										<p>
+											Codigo del contenedor:{' '}
+											<span>{container?.containerCode}</span>
+										</p>
+
+										<div className='mb-2 flex flex-col'>
+											<label id='productToBeStored' name='productToBeStored'>
+												Almacenar Producto
+											</label>
+											<select
+												className='border border-black'
+												{...register('productToBeStored', {
+													required: {
+														value: 'true',
+														message: 'Se debe completar este campo',
+													},
+												})}
+												onChange={onSelectProductHandler}
 											>
-												Detalle
-											</button> */}
+												<option value=''>Seleccione un producto</option>
+												{productsToBeStored.map(product => (
+													<option
+														key={product.productId}
+														value={product.productId}
+													>
+														{product.productName}
+													</option>
+												))}
+											</select>
+											{errors.productToBeStored && (
+												<p className='text-xs text-red-500 font-bold'>
+													{errors.productToBeStored.message}
+												</p>
+											)}
+										</div>
+										<p>
+											Producto disponible :{' '}
+											<span>{amountOfSelectedProduct}</span>
+										</p>
+										<div className='flex flex-col mb-4'>
+											<label id='productAmount' name='productAmount'>
+												Cantidad del producto
+											</label>
+											<input
+												type='number'
+												className='border border-black'
+												{...register('productAmount', {
+													required: {
+														value: 'true',
+														message: 'Se debe completar este campo',
+													},
+													validate: value =>
+														value <= amountOfSelectedProduct ||
+														'Debe ser menor a la cantidad disponible',
+												})}
+											/>
+											{errors.productAmount && (
+												<p className='text-xs text-red-500 font-bold'>
+													{errors.productAmount.message}
+												</p>
+											)}
+										</div>
+										{productsInSelectedContainer.length > 0 ? (
+											<ProductsInSelectedContainer
+												productsInSelectedContainer={
+													productsInSelectedContainer
+												}
+											/>
+										) : null}
+										<div className='text-center'>
 											<button
-												type='button'
-												className='px-2 py-2 rounded-md text-white bg-green-400 font-bold text-sm'
-												onClick={() => pickContainerHandler(container)}
+												type='submit'
+												className='px-2 py-2 font-bold text-white bg-green-500 text-sm rounded-md mb-2'
 											>
 												Almacenar
 											</button>
 										</div>
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
-				<div className='ml-4 border border-black p-2'>
-					<h2 className='font-bold mb-2'>Almacenar en contenedor</h2>
-					<h3
-						className={`mb-2 font-bold ${
-							formMessage?.status === 'ERROR'
-								? 'text-red-500'
-								: 'text-green-500'
-						}`}
-					>
-						{formMessage?.message}
-					</h3>
-					<form onSubmit={stockByContainerHandler}>
-						<p>
-							Codigo del contenedor: <span>{container?.containerCode}</span>
-						</p>
-
-						<div className='mb-2 flex flex-col'>
-							<label id='productToBeStored' name='productToBeStored'>
-								Almacenar Producto
-							</label>
-							<select
-								className='border border-black'
-								{...register('productToBeStored', {
-									required: {
-										value: 'true',
-										message: 'Se debe completar este campo',
-									},
-								})}
-								onChange={onSelectProductHandler}
-							>
-								<option value=''>Seleccione un producto</option>
-								{productsToBeStored.map(product => (
-									<option key={product.productId} value={product.productId}>
-										{product.productName}
-									</option>
-								))}
-							</select>
-							{errors.productToBeStored && (
-								<p className='text-xs text-red-500 font-bold'>
-									{errors.productToBeStored.message}
-								</p>
-							)}
-						</div>
-						<p>
-							Producto disponible : <span>{amountOfSelectedProduct}</span>
-						</p>
-						<div className='flex flex-col mb-2'>
-							<label id='productAmount' name='productAmount'>
-								Cantidad del producto
-							</label>
-							<input
-								type='number'
-								className='border border-black'
-								{...register('productAmount', {
-									required: {
-										value: 'true',
-										message: 'Se debe completar este campo',
-									},
-									validate: value =>
-										value <= amountOfSelectedProduct ||
-										'Debe ser menor a la cantidad disponible',
-								})}
-							/>
-							{errors.productAmount && (
-								<p className='text-xs text-red-500 font-bold'>
-									{errors.productAmount.message}
-								</p>
-							)}
-						</div>
-						<div className='mb-2'>
-							<label>¿Está lleno el contenedor?</label>
-							<input
-								type='checkbox'
-								{...register('isContainerFull')}
-								className='ml-2'
-								name='isContainerFull'
-								id='isContainerFull'
-							/>
-						</div>
-						<div className='text-center'>
-							<button className='px-2 py-2 font-bold text-white bg-green-500 text-sm rounded-md mb-2'>
-								Almacenar
-							</button>
-						</div>
-					</form>
-					{/* This is experimental */}
-					<div>
-						<div>
-							<table>
-								<thead>
-									<tr>
-										<th className='border border-black'>Producto</th>
-										<th className='border border-black'>Cantidad</th>
-										<th className='border border-black'>Vencimiento</th>
-										<th className='border border-black'>Acción</th>
-									</tr>
-								</thead>
-								<tbody>
-									{productsInSelectedContainer.map(product => (
-										<tr key={product.productContainerId}>
-											<td className='border border-black'>
-												{product.products.productName}
-											</td>
-											<td className='border border-black'>
-												{product.productContainerAmount}
-											</td>
-											<td className='border border-black'>
-												{product.products.productExpirationDate}
-											</td>
-											<td className='border border-black'>
-												<button
-													className='bg-red-500 px-2 py-2 rounded-md text-white font-bold'
-													onClick={() =>
-														onRemoveProductInContainer(
-															product.productContainerId,
-															product.productId,
-															product.containerId,
-														)
-													}
-												>
-													Eliminar
-												</button>
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</div>
+									</form>
+								</div>
+							</Dialog.Panel>
+						</Transition.Child>
 					</div>
 				</div>
-			</div>
-		</section>
+			</Dialog>
+		</Transition>
 	)
 }
 
-export default StoreProductsByContainer
+export default StoreProductByContainerModal
