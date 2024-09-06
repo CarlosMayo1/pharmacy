@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../utils/supabase.client'
 import StoreProductByContainerModal from './Modal/StoreProductByContainerModal'
 
-// supabase
+// ====================
+// SUPABASE FUNCTIONS
+// ====================
 const fetchProducts = async () => {
 	const { data, error } = await supabase
 		.from('products')
@@ -39,7 +41,6 @@ const StoreProductsByContainer = () => {
 	const [showContainerModal, setShowContainerModal] = useState(false)
 
 	const pickContainerHandler = containerInfo => {
-		console.log(containerInfo)
 		setShowContainerModal(true)
 		fetchProductsInSelectedContainer(containerInfo.containerId)
 			.then(response => {
@@ -49,7 +50,6 @@ const StoreProductsByContainer = () => {
 				// gets containers information
 				setContainer(containerInfo)
 			})
-		// setFormMessage(null)
 	}
 
 	// Form message
@@ -67,6 +67,7 @@ const StoreProductsByContainer = () => {
 			console.log(response)
 			setProductsToBeStored(response)
 		})
+
 		fetchAvailableContainers().then(response => {
 			console.log(response)
 			setAvailableContainers(response)
@@ -128,12 +129,6 @@ const StoreProductsByContainer = () => {
 									</td>
 									<td className='border border-black'>
 										<div>
-											{/* <button
-												type='button'
-												className='px-2 py-2 rounded-md text-white bg-blue-400 font-bold text-sm'
-											>
-												Detalle
-											</button> */}
 											<button
 												type='button'
 												className='px-2 py-2 rounded-md text-white bg-green-400 font-bold text-sm'
@@ -148,15 +143,28 @@ const StoreProductsByContainer = () => {
 						</tbody>
 					</table>
 				</div>
+				{/* Open different modals */}
+				<div className='ml-4'>
+					<h2 className='font-bold'>Crear:</h2>
+					<ul className='flex flex-col border border-black p-2'>
+						<li>Nueva Categoría </li>
+						<li>Nueva Marca </li>
+						<li>Nuevo Tipo de Producto </li>
+						<li>Nuevo Contenedor </li>
+						<li>Nuevo Tipo de Contenedor </li>
+					</ul>
+				</div>
 				{showContainerModal && (
 					<StoreProductByContainerModal
 						isOpen={showContainerModal}
 						setShowContainerModal={setShowContainerModal}
 						productsInSelectedContainer={productsInSelectedContainer}
+						setProductsInSelectedContainer={setProductsInSelectedContainer}
 						container={container}
 						formMessage={formMessage}
 						setFormMessage={setFormMessage}
 						productsToBeStored={productsToBeStored}
+						setProductsToBeStored={setProductsToBeStored}
 						FORM_MESSAGE={FORM_MESSAGE}
 					/>
 				)}

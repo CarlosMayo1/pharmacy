@@ -7,6 +7,13 @@ import ProductsInSelectedContainer from '../Table/ProductsInSelectedContainer'
 // ====================
 // SUPABASE FUNCTIONS
 // ====================
+const fetchProducts = async () => {
+	const { data, error } = await supabase
+		.from('products')
+		.select('productId, productName, productAmount, productExpirationDate')
+		.neq('isStored', 1)
+	return data
+}
 
 const fetchProductsInSelectedContainer = async containerId => {
 	const { error, data } = await supabase
@@ -85,10 +92,12 @@ const StoreProductByContainerModal = ({
 	isOpen,
 	setShowContainerModal,
 	productsInSelectedContainer,
+	setProductsInSelectedContainer,
 	container,
 	formMessage,
 	setFormMessage,
 	productsToBeStored,
+	setProductsToBeStored,
 	FORM_MESSAGE,
 }) => {
 	const [amountOfSelectedProduct, setAmountOfSelectedProduct] = useState(0)
@@ -135,22 +144,6 @@ const StoreProductByContainerModal = ({
 	const stockByContainerHandler = handleSubmit(data => {
 		// ⚠️ avoids sending multiples query to database, so put a loading and blocks the button when inserting, and updating
 		// avoids to send info to database without container id
-		if (!container) {
-			setFormMessage({
-				status: FORM_MESSAGE.error,
-				message: FORM_MESSAGE.emptyContainer,
-			})
-			return
-		}
-
-		if (!data.productAmount) {
-			// It doesn't allow an empty field in the amount
-			setError('productAmount', {
-				type: 'custom',
-				message: 'Este campo no puede estar vacío',
-			})
-			return
-		}
 
 		// checks if the product already exits in the container
 		const existingProductInContainer = productsInSelectedContainer.filter(
@@ -200,7 +193,6 @@ const StoreProductByContainerModal = ({
 
 					// if the checkbox is clicked it means the container is full
 					if (data.isContainerFull) {
-						console.log('working')
 						changeStateOfContainer(0, container.containerId)
 							.then(response => console.log(response))
 							.finally(() => {
@@ -220,49 +212,41 @@ const StoreProductByContainerModal = ({
 			productContainerAmount: data.productAmount,
 		}
 
-		insertProductByContainer(storeProduct)
-			.then(() => {
-				// shows an alert saying that the product was inserted successfully
-			})
-			.finally(() => {
-				// change the state of the product from 0 (not stored) to 1 (product stored)
-				if (Number(data.productAmount) === amountOfSelectedProduct) {
-					changeStatusOfStoreProducts(1, data.productToBeStored)
-						.then(response => console.log(response))
-						.finally(() => {
-							// resets available products in the select
-							fetchProducts().then(response => {
-								console.log(response)
-								setProductsToBeStored(response)
-							})
-						})
-				}
-
-				// updates products in selected container
-				fetchProductsInSelectedContainer(container.containerId)
-					.then(response => {
-						setProductsInSelectedContainer(response)
+		insertProductByContainer(storeProduct).finally(() => {
+			// change the state of the product from 0 (not stored) to 1 (product stored)
+			if (Number(data.productAmount) === amountOfSelectedProduct) {
+				changeStatusOfStoreProducts(1, data.productToBeStored).finally(() => {
+					// resets available products in the select
+					fetchProducts().then(response => {
+						setProductsToBeStored(response)
 					})
-					.finally(() => {
-						// updates form message
-						setFormMessage({
-							status: FORM_MESSAGE.success,
-							message: FORM_MESSAGE.insert,
-						})
-					})
+				})
+			}
 
-				// if the checkbox is clicked it means the container is full
-				if (data.isContainerFull) {
-					console.log('working')
-					changeStateOfContainer(0, container.containerId)
-						.then(response => console.log(response))
-						.finally(() => {
-							fetchAvailableContainers().then(response => {
-								setAvailableContainers(response)
-							})
-						})
-				}
-			})
+			// updates products in selected container
+			fetchProductsInSelectedContainer(container.containerId)
+				.then(response => {
+					setProductsInSelectedContainer(response)
+				})
+				.finally(() => {
+					// updates form message
+					setFormMessage({
+						status: FORM_MESSAGE.success,
+						message: FORM_MESSAGE.insert,
+					})
+				})
+
+			// if the checkbox is clicked it means the container is full
+			// if (data.isContainerFull) {
+			// 	changeStateOfContainer(0, container.containerId)
+			// 		.then(response => console.log(response))
+			// 		.finally(() => {
+			// 			fetchAvailableContainers().then(response => {
+			// 				setAvailableContainers(response)
+			// 			})
+			// 		})
+			// }
+		})
 
 		// resets the form
 		reset()
