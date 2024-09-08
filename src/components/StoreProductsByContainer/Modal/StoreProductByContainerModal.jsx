@@ -102,6 +102,7 @@ const StoreProductByContainerModal = ({
 	setProductsToBeStored,
 	FORM_MESSAGE,
 	loadingModalContainer,
+	availableContainers,
 }) => {
 	const [amountOfSelectedProduct, setAmountOfSelectedProduct] = useState(0)
 	const [sendingData, setSendingData] = useState(false)
@@ -419,13 +420,7 @@ const StoreProductByContainerModal = ({
 														</p>
 													)}
 												</div>
-												{productsInSelectedContainer.length > 0 ? (
-													<ProductsInSelectedContainer
-														productsInSelectedContainer={
-															productsInSelectedContainer
-														}
-													/>
-												) : null}
+
 												<div className='text-center'>
 													<button
 														type='submit'
@@ -439,6 +434,14 @@ const StoreProductByContainerModal = ({
 													</button>
 												</div>
 											</form>
+											{productsInSelectedContainer.length > 0 ? (
+												<ProductsInSelectedContainer
+													productsInSelectedContainer={
+														productsInSelectedContainer
+													}
+													availableContainers={availableContainers}
+												/>
+											) : null}
 										</div>
 									</div>
 								)}

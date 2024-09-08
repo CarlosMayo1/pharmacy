@@ -170,6 +170,7 @@ const StoreProductsByContainer = () => {
 						setProductsToBeStored={setProductsToBeStored}
 						FORM_MESSAGE={FORM_MESSAGE}
 						loadingModalContainer={loadingModalContainer}
+						availableContainers={availableContainers}
 					/>
 				)}
 			</div>

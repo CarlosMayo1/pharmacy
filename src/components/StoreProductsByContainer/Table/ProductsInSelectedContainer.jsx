@@ -2,7 +2,10 @@ import { useState } from 'react'
 import MoveProductOtADifferentContainerModal from '../Modal/MoveProductToADifferentContainerModal'
 import { IconPackageExport } from '@tabler/icons-react'
 
-const ProductsInSelectedContainer = ({ productsInSelectedContainer }) => {
+const ProductsInSelectedContainer = ({
+	productsInSelectedContainer,
+	availableContainers,
+}) => {
 	const [isOpen, setIsOpen] = useState(false)
 
 	const onMoveToAnotherContainerHandler = () => {
@@ -64,6 +67,7 @@ const ProductsInSelectedContainer = ({ productsInSelectedContainer }) => {
 					<MoveProductOtADifferentContainerModal
 						isOpen={isOpen}
 						setIsOpen={setIsOpen}
+						availableContainers={availableContainers}
 					/>
 				)}
 			</div>

@@ -1,10 +1,26 @@
 import { Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
+import { useForm } from 'react-hook-form'
 
-const MoveProductOtADifferentContainerModal = ({ isOpen, setIsOpen }) => {
+// ====================
+// SUPABASE FUNCTIONS
+// ====================
+
+const MoveProductOtADifferentContainerModal = ({
+	isOpen,
+	setIsOpen,
+	availableContainers,
+}) => {
+	const { handleSubmit, register } = useForm()
+
+	const onSubmitFormHandler = handleSubmit(data => {
+		console.log(data)
+	})
+
 	const closeModal = () => {
 		setIsOpen(false)
 	}
+
 	return (
 		<Transition appear show={isOpen} as={Fragment}>
 			<Dialog as='div' className='relative z-10' onClose={closeModal}>
@@ -38,29 +54,38 @@ const MoveProductOtADifferentContainerModal = ({ isOpen, setIsOpen }) => {
 								>
 									Cambiar Contendor
 								</Dialog.Title>
-								<div>
-									{/* <h3
-										className={`mb-2 font-bold ${
-											formMessage?.status === 'ERROR'
-												? 'text-red-500'
-												: 'text-green-500'
-										}`}
-									></h3> */}
-
+								<form onSubmit={onSubmitFormHandler}>
 									<div className='flex flex-col mb-2'>
-										<label className='mb-1'>Contenedor</label>
-										<select className='border border-black'>
+										<label className='mb-1'>Seleccionar Contenedor</label>
+										<select
+											className='border border-black'
+											{...register('availableContainer', {
+												required: {
+													value: true,
+													message: 'Se require este campo',
+												},
+											})}
+										>
 											<option>Seleccione contenedor</option>
-											<option>DV0001</option>
-											<option>DV0002</option>
+											{availableContainers.map(container => (
+												<option
+													key={container.containerId}
+													value={container.containerId}
+												>
+													{container.containerCode}
+												</option>
+											))}
 										</select>
 									</div>
 									<div className='text-center'>
-										<button className='bg-blue-400 font-bold text-white text-sm rounded-md p-2'>
+										<button
+											type='submit'
+											className='bg-green-500 font-bold text-white text-sm rounded-md p-2'
+										>
 											Mover
 										</button>
 									</div>
-								</div>
+								</form>
 							</Dialog.Panel>
 						</Transition.Child>
 					</div>
