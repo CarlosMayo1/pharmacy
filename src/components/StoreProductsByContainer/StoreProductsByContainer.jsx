@@ -39,8 +39,10 @@ const StoreProductsByContainer = () => {
 	const [container, setContainer] = useState(null)
 	const [formMessage, setFormMessage] = useState({})
 	const [showContainerModal, setShowContainerModal] = useState(false)
+	const [loadingModalContainer, setLoadingModalContainer] = useState(false)
 
 	const pickContainerHandler = containerInfo => {
+		setLoadingModalContainer(true)
 		setShowContainerModal(true)
 		fetchProductsInSelectedContainer(containerInfo.containerId)
 			.then(response => {
@@ -49,6 +51,7 @@ const StoreProductsByContainer = () => {
 			.finally(() => {
 				// gets containers information
 				setContainer(containerInfo)
+				setLoadingModalContainer(false)
 			})
 	}
 
@@ -166,6 +169,7 @@ const StoreProductsByContainer = () => {
 						productsToBeStored={productsToBeStored}
 						setProductsToBeStored={setProductsToBeStored}
 						FORM_MESSAGE={FORM_MESSAGE}
+						loadingModalContainer={loadingModalContainer}
 					/>
 				)}
 			</div>

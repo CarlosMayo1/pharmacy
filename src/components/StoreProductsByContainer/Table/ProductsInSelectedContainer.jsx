@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import MoveProductOtADifferentContainerModal from '../Modal/MoveProductToADifferentContainerModal'
+import { IconPackageExport } from '@tabler/icons-react'
 
 const ProductsInSelectedContainer = ({ productsInSelectedContainer }) => {
 	const [isOpen, setIsOpen] = useState(false)
@@ -15,16 +16,16 @@ const ProductsInSelectedContainer = ({ productsInSelectedContainer }) => {
 				<table>
 					<thead>
 						<tr>
-							<th className='border border-black text-sm'>Producto</th>
+							<th className='border border-black text-sm p-1.5'>Producto</th>
 							<th className='border border-black text-sm'>Cantidad</th>
-							<th className='border border-black text-sm'>Vencimiento</th>
-							<th className='border border-black text-sm'>Acción</th>
+							<th className='border border-black text-sm'>Vence</th>
+							<th className='border border-black text-sm p-1.5'>Acción</th>
 						</tr>
 					</thead>
 					<tbody>
 						{productsInSelectedContainer.map(product => (
 							<tr key={product.productContainerId}>
-								<td className='border border-black font-bold text-sm'>
+								<td className='border border-black font-bold text-xs p-1.5'>
 									{product.products.productName}
 								</td>
 								<td className='border border-black text-sm'>
@@ -33,11 +34,13 @@ const ProductsInSelectedContainer = ({ productsInSelectedContainer }) => {
 								<td className='border border-black text-sm'>
 									{product.products.productExpirationDate}
 								</td>
-								<td className='border border-black'>
+								<td className='border border-black p-1.5'>
 									<button
 										type='button'
+										className='flex bg-indigo-500 text-white text-sm items-center p-1.5 rounded-md font-bold'
 										onClick={onMoveToAnotherContainerHandler}
 									>
+										<IconPackageExport size={17} className='mr-1' />
 										Mover
 									</button>
 									{/* <button

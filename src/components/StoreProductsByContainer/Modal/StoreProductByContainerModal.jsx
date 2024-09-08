@@ -3,6 +3,8 @@ import { Transition, Dialog } from '@headlessui/react'
 import { supabase } from '../../../utils/supabase.client'
 import { useForm } from 'react-hook-form'
 import ProductsInSelectedContainer from '../Table/ProductsInSelectedContainer'
+import SmallSpinner from '../../UI/Spinner/SmallSpinner'
+import Spinner from '../../UI/Spinner/Spinner'
 
 // ====================
 // SUPABASE FUNCTIONS
@@ -99,8 +101,10 @@ const StoreProductByContainerModal = ({
 	productsToBeStored,
 	setProductsToBeStored,
 	FORM_MESSAGE,
+	loadingModalContainer,
 }) => {
 	const [amountOfSelectedProduct, setAmountOfSelectedProduct] = useState(0)
+	const [sendingData, setSendingData] = useState(false)
 	const {
 		register,
 		handleSubmit,
@@ -142,8 +146,7 @@ const StoreProductByContainerModal = ({
 	}
 
 	const stockByContainerHandler = handleSubmit(data => {
-		// ⚠️ avoids sending multiples query to database, so put a loading and blocks the button when inserting, and updating
-		// avoids to send info to database without container id
+		setSendingData(true)
 
 		// checks if the product already exits in the container
 		const existingProductInContainer = productsInSelectedContainer.filter(
@@ -159,49 +162,49 @@ const StoreProductByContainerModal = ({
 				data.productToBeStored,
 				container.containerId,
 				updatedAmount,
-			)
-				.then(() => {})
-				.finally(() => {
-					// resets the form
-					reset()
-					// resets to zero
-					setAmountOfSelectedProduct(0) // resets to zero
-					if (Number(data.productAmount) === amountOfSelectedProduct) {
-						changeStatusOfStoreProducts(1, data.productToBeStored)
-							.then(response => console.log(response))
-							.finally(() => {
-								// resets available products in the select
-								fetchProducts().then(response => {
-									console.log(response)
-									setProductsToBeStored(response)
-								})
+			).finally(() => {
+				// resets the form
+				reset()
+				// resets to zero
+				setAmountOfSelectedProduct(0) // resets to zero
+				if (Number(data.productAmount) === amountOfSelectedProduct) {
+					changeStatusOfStoreProducts(1, data.productToBeStored)
+						.then(response => console.log(response))
+						.finally(() => {
+							// resets available products in the select
+							fetchProducts().then(response => {
+								console.log(response)
+								setProductsToBeStored(response)
 							})
-					}
-
-					// updates products in selected container
-					fetchProductsInSelectedContainer(container.containerId)
-						.then(response => {
-							setProductsInSelectedContainer(response)
 						})
-						.finally(() =>
-							// updates state of the form
-							setFormMessage({
-								status: FORM_MESSAGE.success,
-								message: FORM_MESSAGE.update,
-							}),
-						)
+				}
 
-					// if the checkbox is clicked it means the container is full
-					if (data.isContainerFull) {
-						changeStateOfContainer(0, container.containerId)
-							.then(response => console.log(response))
-							.finally(() => {
-								fetchAvailableContainers().then(response => {
-									setAvailableContainers(response)
-								})
-							})
-					}
-				})
+				// updates products in selected container
+				fetchProductsInSelectedContainer(container.containerId)
+					.then(response => {
+						setProductsInSelectedContainer(response)
+					})
+					.finally(() => {
+						// updates state of the form
+						setFormMessage({
+							status: FORM_MESSAGE.success,
+							message: FORM_MESSAGE.update,
+						})
+						// change sending data to false
+						setSendingData(false)
+					})
+
+				// if the checkbox is clicked it means the container is full
+				// if (data.isContainerFull) {
+				// 	changeStateOfContainer(0, container.containerId)
+				// 		.then(response => console.log(response))
+				// 		.finally(() => {
+				// 			fetchAvailableContainers().then(response => {
+				// 				setAvailableContainers(response)
+				// 			})
+				// 		})
+				// }
+			})
 			// shows a message that the process was successful
 			return
 		}
@@ -246,6 +249,8 @@ const StoreProductByContainerModal = ({
 			// 			})
 			// 		})
 			// }
+			// change sending data
+			setSendingData(false)
 		})
 
 		// resets the form
@@ -322,103 +327,121 @@ const StoreProductByContainerModal = ({
 							leaveTo='opacity-0 scale-95'
 						>
 							<Dialog.Panel className='w-full max-w-xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
-								<Dialog.Title
-									as='h3'
-									className='text-lg font-medium leading-6 text-gray-900'
-								>
-									Almacenar en Contenedor
-								</Dialog.Title>
-								<div>
-									<h3
-										className={`mb-2 font-bold ${
-											formMessage?.status === 'ERROR'
-												? 'text-red-500'
-												: 'text-green-500'
-										}`}
-									>
-										{formMessage?.message}
-									</h3>
-
-									<form onSubmit={stockByContainerHandler}>
-										<p>
-											Codigo del contenedor:{' '}
-											<span>{container?.containerCode}</span>
-										</p>
-
-										<div className='mb-2 flex flex-col'>
-											<label id='productToBeStored' name='productToBeStored'>
-												Almacenar Producto
-											</label>
-											<select
-												className='border border-black'
-												{...register('productToBeStored', {
-													required: {
-														value: 'true',
-														message: 'Se debe completar este campo',
-													},
-												})}
-												onChange={onSelectProductHandler}
+								{loadingModalContainer ? (
+									<div className='flex justify-center'>{<Spinner />}</div>
+								) : (
+									<div>
+										{' '}
+										<Dialog.Title
+											as='h3'
+											className='text-lg font-medium leading-6 text-gray-900'
+										>
+											Almacenar en Contenedor
+										</Dialog.Title>
+										<div>
+											<h3
+												className={`mb-2 font-bold ${
+													formMessage?.status === 'ERROR'
+														? 'text-red-500'
+														: 'text-green-500'
+												}`}
 											>
-												<option value=''>Seleccione un producto</option>
-												{productsToBeStored.map(product => (
-													<option
-														key={product.productId}
-														value={product.productId}
+												{formMessage?.message}
+											</h3>
+
+											<form onSubmit={stockByContainerHandler}>
+												<p>
+													Codigo del contenedor:{' '}
+													<span>{container?.containerCode}</span>
+												</p>
+
+												<div className='mb-2 flex flex-col'>
+													<label
+														id='productToBeStored'
+														name='productToBeStored'
 													>
-														{product.productName}
-													</option>
-												))}
-											</select>
-											{errors.productToBeStored && (
-												<p className='text-xs text-red-500 font-bold'>
-													{errors.productToBeStored.message}
-												</p>
-											)}
+														Almacenar Producto
+													</label>
+													<select
+														className='border border-black'
+														{...register('productToBeStored', {
+															required: {
+																value: 'true',
+																message: 'Se debe completar este campo',
+															},
+														})}
+														onChange={onSelectProductHandler}
+													>
+														<option value=''>Seleccione un producto</option>
+														{productsToBeStored.map(product => (
+															<option
+																key={product.productId}
+																value={product.productId}
+															>
+																{product.productName}
+															</option>
+														))}
+													</select>
+													{errors.productToBeStored && (
+														<p className='text-xs text-red-500 font-bold'>
+															{errors.productToBeStored.message}
+														</p>
+													)}
+												</div>
+												{amountOfSelectedProduct > 0 ? (
+													<p>
+														Producto disponible :{' '}
+														<span className='font-semibold'>
+															{amountOfSelectedProduct}
+														</span>
+													</p>
+												) : null}
+												<div className='flex flex-col mb-4'>
+													<label id='productAmount' name='productAmount'>
+														Cantidad del producto
+													</label>
+													<input
+														type='number'
+														className='border border-black'
+														{...register('productAmount', {
+															required: {
+																value: 'true',
+																message: 'Se debe completar este campo',
+															},
+															validate: value =>
+																value <= amountOfSelectedProduct ||
+																'Debe ser menor a la cantidad disponible',
+														})}
+													/>
+													{errors.productAmount && (
+														<p className='text-xs text-red-500 font-bold'>
+															{errors.productAmount.message}
+														</p>
+													)}
+												</div>
+												{productsInSelectedContainer.length > 0 ? (
+													<ProductsInSelectedContainer
+														productsInSelectedContainer={
+															productsInSelectedContainer
+														}
+													/>
+												) : null}
+												<div className='text-center'>
+													<button
+														type='submit'
+														className={`px-2 py-2 font-bold text-white ${
+															sendingData ? 'bg-green-300' : 'bg-green-500'
+														} text-sm rounded-md`}
+														disabled={sendingData}
+													>
+														{sendingData && <SmallSpinner />}
+														Almacenar
+													</button>
+												</div>
+											</form>
 										</div>
-										<p>
-											Producto disponible :{' '}
-											<span>{amountOfSelectedProduct}</span>
-										</p>
-										<div className='flex flex-col mb-4'>
-											<label id='productAmount' name='productAmount'>
-												Cantidad del producto
-											</label>
-											<input
-												type='number'
-												className='border border-black'
-												{...register('productAmount', {
-													required: {
-														value: 'true',
-														message: 'Se debe completar este campo',
-													},
-													validate: value =>
-														value <= amountOfSelectedProduct ||
-														'Debe ser menor a la cantidad disponible',
-												})}
-											/>
-											{errors.productAmount && (
-												<p className='text-xs text-red-500 font-bold'>
-													{errors.productAmount.message}
-												</p>
-											)}
-										</div>
-										{productsInSelectedContainer.length > 0 ? (
-											<ProductsInSelectedContainer
-												productsInSelectedContainer={
-													productsInSelectedContainer
-												}
-											/>
-										) : null}
-										<div className='text-center'>
-											<button
-												type='submit'
-												className='px-2 py-2 font-bold text-white bg-green-500 text-sm rounded-md mb-2'
-											>
-												Almacenar
-											</button>
-										</div>
-									</form>
-								</div>
+									</div>
+								)}
 							</Dialog.Panel>
 						</Transition.Child>
 					</div>
