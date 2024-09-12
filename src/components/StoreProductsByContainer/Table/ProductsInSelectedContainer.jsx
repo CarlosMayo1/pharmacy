@@ -5,10 +5,14 @@ import { IconPackageExport } from '@tabler/icons-react'
 const ProductsInSelectedContainer = ({
 	productsInSelectedContainer,
 	availableContainers,
+	container,
+	setProductsInSelectedContainer,
 }) => {
 	const [isOpen, setIsOpen] = useState(false)
+	const [productSelectedToBeMoved, setProductSelectedToBeMoved] = useState(null)
 
-	const onMoveToAnotherContainerHandler = () => {
+	const onMoveToAnotherContainerHandler = product => {
+		setProductSelectedToBeMoved(product)
 		setIsOpen(true)
 	}
 
@@ -41,7 +45,7 @@ const ProductsInSelectedContainer = ({
 									<button
 										type='button'
 										className='flex bg-indigo-500 text-white text-sm items-center p-1.5 rounded-md font-bold'
-										onClick={onMoveToAnotherContainerHandler}
+										onClick={() => onMoveToAnotherContainerHandler(product)}
 									>
 										<IconPackageExport size={17} className='mr-1' />
 										Mover
@@ -67,7 +71,10 @@ const ProductsInSelectedContainer = ({
 					<MoveProductOtADifferentContainerModal
 						isOpen={isOpen}
 						setIsOpen={setIsOpen}
+						container={container}
 						availableContainers={availableContainers}
+						productSelectedToBeMoved={productSelectedToBeMoved}
+						setProductsInSelectedContainer={setProductsInSelectedContainer}
 					/>
 				)}
 			</div>

@@ -111,8 +111,6 @@ const StoreProductByContainerModal = ({
 		handleSubmit,
 		formState: { errors },
 		reset,
-		setError,
-		setValue,
 	} = useForm()
 
 	// ======================
@@ -440,6 +438,10 @@ const StoreProductByContainerModal = ({
 														productsInSelectedContainer
 													}
 													availableContainers={availableContainers}
+													container={container}
+													setProductsInSelectedContainer={
+														setProductsInSelectedContainer
+													}
 												/>
 											) : null}
 										</div>
