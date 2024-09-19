@@ -12,17 +12,15 @@ function Home() {
 							<li>
 								<Link to='/'>Inicio</Link>
 							</li>
-							<li className='font-bold'>Producto</li>
+							<li className='font-bold'>Almacen</li>
 							<li className='ml-2'>
 								<Link to='new-product'>Nuevo producto</Link>
 							</li>
 							<li className='ml-2'>
-								<Link to='store-product-by-container'>
-									Almacenar producto por contenedor
-								</Link>
+								<Link to='products'>Productos</Link>
 							</li>
 							<li className='ml-2'>
-								<Link to='products'>Productos</Link>
+								<Link to='store-product-by-container'>Almacenar</Link>
 							</li>
 							<li className='ml-2'>
 								<Link to='product-refill'>Rellenar producto</Link>
@@ -31,16 +29,6 @@ function Home() {
 								<Link to='product-refill-by-container'>
 									Rellenar producto por contenedor
 								</Link>
-							</li>
-							<li className='font-bold'>Almacen</li>
-							<li className='ml-2'>
-								<Link to='almacen'>Productos Almacenados</Link>
-							</li>
-							<li className='ml-2'>
-								<Link to='almacen'>Almacenar producto</Link>
-							</li>
-							<li className='ml-2'>
-								<Link to='almacen'>Nuevo Contenedor</Link>
 							</li>
 						</ul>
 					</nav>

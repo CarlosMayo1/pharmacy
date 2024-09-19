@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { supabase } from '../../utils/supabase.client'
+import { supabase } from '../../../utils/supabase.client'
 import { useForm } from 'react-hook-form'
 
 const updateProductContainer = async (

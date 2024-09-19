@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../../utils/supabase.client'
+import { supabase } from '../../../utils/supabase.client'
 import { useForm } from 'react-hook-form'
-import Spinner from '../UI/Spinner/Spinner'
+import Spinner from '../../UI/Spinner/Spinner'
 import ProductContainerModal from './ProductContainerModal'
 
 // Supabase
