@@ -30,6 +30,9 @@ function Home() {
 									Rellenar producto por contenedor
 								</Link>
 							</li>
+							<li className='ml-2'>
+								<Link to='dispatches'>Salidas</Link>
+							</li>
 						</ul>
 					</nav>
 				</div>

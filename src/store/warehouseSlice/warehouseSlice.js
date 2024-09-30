@@ -7,6 +7,10 @@ const initialState = {
 	selectedContainerInfo: {},
 	selectedProductToBeMoved: {},
 	formMessage: {},
+	products: [],
+	dispatchOrders: [],
+	productsToBeDispatched: [],
+	dispatchedProducts: [],
 }
 
 const warehouseSlice = createSlice({
@@ -30,6 +34,20 @@ const warehouseSlice = createSlice({
 		},
 		showFormMessage(state, action) {
 			state.formMessage = action.payload
+		},
+		products(state, action) {
+			state.products = action.payload
+		},
+		dispatchOrders(state, action) {
+			state.dispatchOrders = action.payload
+		},
+		productsToBeDispatched(state, action) {
+			const listOfProducts = [...state.productsToBeDispatched]
+			listOfProducts.push(action.payload)
+			state.productsToBeDispatched = listOfProducts
+		},
+		dispatchedProducts(state, action) {
+			state.dispatchedProducts = action.payload
 		},
 	},
 })

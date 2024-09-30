@@ -5,7 +5,7 @@ import StoreProductsByContainer from './components/Warehouse/StoreProductsByCont
 import Products from './components/Warehouse/Products/Products'
 import ProductRefill from './components/ProductRefill'
 import ProductRefillByContainer from './components/ProductRefillByContainer'
-import Warehouse from './components/Warehouse/Warehouse'
+import Dispatches from './components/Warehouse/Dispatches/Dispatches'
 
 function App() {
 	return (
@@ -22,8 +22,8 @@ function App() {
 					<Route
 						path='/store-product-by-container'
 						element={<StoreProductsByContainer />}
-						index
 					/>
+					<Route path='/dispatches' element={<Dispatches />} />
 				</Route>
 			</Routes>
 		</div>
