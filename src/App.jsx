@@ -6,13 +6,17 @@ import Products from './components/Warehouse/Products/Products'
 import ProductRefill from './components/ProductRefill'
 import ProductRefillByContainer from './components/ProductRefillByContainer'
 import Dispatches from './components/Warehouse/Dispatches/Dispatches'
+import CatalagOfProducts from './components/Products/Products'
+import { Toaster } from 'react-hot-toast'
 
 function App() {
 	return (
 		<div className='App'>
+			<Toaster position='top-center' />
 			<Routes>
 				<Route path='/' element={<Home />}>
 					<Route path='/new-product' element={<NewProduct />} />
+					<Route path='/list-products' element={<CatalagOfProducts />} />
 					<Route path='/products' element={<Products />} />
 					<Route path='/product-refill' element={<ProductRefill />} />
 					<Route

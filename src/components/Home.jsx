@@ -12,6 +12,10 @@ function Home() {
 							<li>
 								<Link to='/'>Inicio</Link>
 							</li>
+							<li className='font-bold'>Productos</li>
+							<li className='ml-2'>
+								<Link to='list-products'>Catálogo de productos</Link>
+							</li>
 							<li className='font-bold'>Almacen</li>
 							<li className='ml-2'>
 								<Link to='new-product'>Nuevo producto</Link>
