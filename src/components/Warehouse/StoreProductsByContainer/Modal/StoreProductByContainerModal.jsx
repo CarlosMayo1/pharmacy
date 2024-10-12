@@ -9,12 +9,13 @@ import {
 	insertProductByContainer,
 	updateProductAmountInSelectedContainer,
 	updateStatusOfStoreProducts,
+	updateAmountOfSelectedProduct,
 } from '../../../../utils/warehouse/warehouse'
 import { useForm } from 'react-hook-form'
 import ProductsInSelectedContainer from '../Table/ProductsInSelectedContainer'
 import SmallSpinner from '../../../UI/Spinner/SmallSpinner'
 import Spinner from '../../../UI/Spinner/Spinner'
-import { FORM_MESSAGE } from '../../../../constants/constants'
+import toast from 'react-hot-toast'
 
 const StoreProductByContainerModal = ({
 	isOpen,
@@ -34,6 +35,7 @@ const StoreProductByContainerModal = ({
 	const dispatch = useDispatch()
 	const [amountOfSelectedProduct, setAmountOfSelectedProduct] = useState(0)
 	const [sendingData, setSendingData] = useState(false)
+
 	const {
 		register,
 		handleSubmit,
@@ -44,31 +46,31 @@ const StoreProductByContainerModal = ({
 	// =========================
 	// FUNCTIONS WITH SUPABASE
 	// =========================
-	const fetchProductAmountInContainersFromSupabase = async (
-		productId,
-		selectedProductAmount,
-	) => {
-		try {
-			// fetch amount of selected product stored in all the containers
-			const amountOfSelectedProduct = await fetchProductAmountInContainers(
-				productId,
-			)
+	// const fetchProductAmountInContainersFromSupabase = async (
+	// 	productId,
+	// 	selectedProductAmount,
+	// ) => {
+	// 	try {
+	// 		// fetch amount of selected product stored in all the containers
+	// 		const amountOfSelectedProduct = await fetchProductAmountInContainers(
+	// 			productId,
+	// 		)
 
-			// calculates the current amount available
-			const amount = amountOfSelectedProduct.reduce(
-				(accumulator, currentValue) =>
-					accumulator + currentValue.productContainerAmount,
-				0,
-			)
+	// 		// calculates the current amount available
+	// 		const amount = amountOfSelectedProduct.reduce(
+	// 			(accumulator, currentValue) =>
+	// 				accumulator + currentValue.productContainerAmount,
+	// 			0,
+	// 		)
 
-			const productsLeftToBeStored =
-				selectedProductAmount[0].productAmount - amount
+	// 		const productsLeftToBeStored =
+	// 			selectedProductAmount[0].productAmount - amount
 
-			setAmountOfSelectedProduct(productsLeftToBeStored)
-		} catch (error) {
-			console.log(error)
-		}
-	}
+	// 		setAmountOfSelectedProduct(productsLeftToBeStored)
+	// 	} catch (error) {
+	// 		console.log(error)
+	// 	}
+	// }
 
 	const updateExistingProductAmountFromSupabase = async (
 		existingProductInContainer,
@@ -85,15 +87,25 @@ const StoreProductByContainerModal = ({
 				updatedAmount,
 			)
 
-			// if the update does not occur, then stops the process
-			// ⚠️ mostrar un mensaje de error
 			if (error !== null) {
-				dispatch(
-					warehouseSliceAction.showFormMessage({
-						status: FORM_MESSAGE.error,
-						message: FORM_MESSAGE.updateError,
-					}),
+				// error message
+				toast.error(
+					'Error al actualizar cantidad de producto en el contenedor seleccionado',
 				)
+				return
+			}
+
+			const updateProductAmount = amountOfSelectedProduct - data.productAmount
+
+			// update amoun of product
+			const updateAmount = await updateAmountOfSelectedProduct(
+				updateProductAmount,
+				data.productToBeStored,
+			)
+
+			if (updateAmount !== null) {
+				// error message
+				toast.error('Error al actualizar cantidad de producto disponible')
 				return
 			}
 
@@ -106,12 +118,8 @@ const StoreProductByContainerModal = ({
 				)
 
 				if (error !== null) {
-					dispatch(
-						warehouseSliceAction.showFormMessage({
-							status: FORM_MESSAGE.error,
-							message: FORM_MESSAGE.updateError,
-						}),
-					)
+					// error message
+					toast.error('Error al actualizar el estado del producto seleccionado')
 					return
 				}
 			}
@@ -132,12 +140,8 @@ const StoreProductByContainerModal = ({
 				),
 			)
 
-			dispatch(
-				warehouseSliceAction.showFormMessage({
-					status: FORM_MESSAGE.success,
-					message: FORM_MESSAGE.insert,
-				}),
-			)
+			// successful message
+			toast.success('Producto insertado correctamente')
 
 			// resets form
 			reset()
@@ -155,17 +159,28 @@ const StoreProductByContainerModal = ({
 			containerId: selectedContainer.containerId,
 			productId: data.productToBeStored,
 			productContainerAmount: data.productAmount,
+			productContainerObservations: data.productContainerObservations,
 		}
 
 		const insertProduct = await insertProductByContainer(storeProduct)
 
 		if (insertProduct !== null) {
-			dispatch(
-				warehouseSliceAction.showFormMessage({
-					status: FORM_MESSAGE.error,
-					message: FORM_MESSAGE.insertError,
-				}),
-			)
+			// error message
+			toast.error('Erro al ingresar producto')
+			return
+		}
+
+		const updateProductAmount = amountOfSelectedProduct - data.productAmount
+
+		// update amoun of product
+		const updateAmount = await updateAmountOfSelectedProduct(
+			updateProductAmount,
+			data.productToBeStored,
+		)
+
+		if (updateAmount !== null) {
+			// error message
+			toast.error('Error al actualizar cantidad de producto disponible')
 			return
 		}
 
@@ -174,12 +189,8 @@ const StoreProductByContainerModal = ({
 			const error = await updateStatusOfStoreProducts(1, data.productToBeStored)
 
 			if (error !== null) {
-				dispatch(
-					warehouseSliceAction.showFormMessage({
-						status: FORM_MESSAGE.error,
-						message: FORM_MESSAGE.updateError,
-					}),
-				)
+				// error message
+				toast.error('Error al actualizar estado del producto')
 				return
 			}
 		}
@@ -199,12 +210,9 @@ const StoreProductByContainerModal = ({
 
 		dispatch(warehouseSliceAction.productsToBeStored(products))
 
-		dispatch(
-			warehouseSliceAction.showFormMessage({
-				status: FORM_MESSAGE.success,
-				message: FORM_MESSAGE.insert,
-			}),
-		)
+		// succesful message
+		toast.success('Producto almacenado correctamente')
+
 		// resets form
 		reset()
 		// set amount to zero
@@ -223,6 +231,7 @@ const StoreProductByContainerModal = ({
 		const productId = e.target.value
 		// if it is empty, don't do anything
 		if (!productId) {
+			setAmountOfSelectedProduct(0)
 			return
 		}
 
@@ -230,7 +239,9 @@ const StoreProductByContainerModal = ({
 			product => product.productId === e.target.value, // id of the selected product
 		)
 
-		fetchProductAmountInContainersFromSupabase(productId, selectedProductAmount)
+		setAmountOfSelectedProduct(selectedProductAmount[0].flexibleProductAmount)
+
+		// fetchProductAmountInContainersFromSupabase(productId, selectedProductAmount)
 	}
 
 	const stockByContainerHandler = handleSubmit(data => {
@@ -293,16 +304,6 @@ const StoreProductByContainerModal = ({
 											Almacenar en Contenedor
 										</Dialog.Title>
 										<div>
-											<h3
-												className={`mb-2 font-bold ${
-													formMessage?.status === 'ERROR'
-														? 'text-red-500'
-														: 'text-green-500'
-												}`}
-											>
-												{formMessage?.message}
-											</h3>
-
 											<form onSubmit={stockByContainerHandler}>
 												<p>
 													Codigo del contenedor:{' '}
@@ -372,6 +373,21 @@ const StoreProductByContainerModal = ({
 															{errors.productAmount.message}
 														</p>
 													)}
+												</div>
+												<div className='flex flex-col mb-2'>
+													<label
+														id='productContainerObservationsLabel'
+														htmlFor='productContainerObservations'
+													>
+														¿El producto tiene alguna observación?
+													</label>
+													<textarea
+														row='3'
+														cols='3'
+														className='border border-black'
+														id='productContainerObservations'
+														{...register('productContainerObservations')}
+													/>
 												</div>
 
 												<div className='text-center'>

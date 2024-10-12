@@ -51,7 +51,6 @@ const StoreProductsByContainer = () => {
 			//fetch producs in selected container from supabase
 			const productsInSelectedContainer =
 				await fetchProductsInSelectedContainer(container.containerId)
-			console.log(productsInSelectedContainer)
 			dispatch(
 				warehouseSliceAction.productsInSelectedContainer(
 					productsInSelectedContainer,
@@ -110,7 +109,8 @@ const StoreProductsByContainer = () => {
 						<thead>
 							<tr>
 								<th className='border border-black'>Producto</th>
-								<th className='border border-black'>Cantidad</th>
+								<th className='border border-black'>Tipo</th>
+								<th className='border border-black'>Disponible</th>
 								<th className='border border-black'>Vencimiento</th>
 								<th className='border border-black'>Observaciones</th>
 							</tr>
@@ -118,14 +118,19 @@ const StoreProductsByContainer = () => {
 						<tbody>
 							{productsToBeStored.map(product => (
 								<tr key={product.productId}>
-									<td className='border border-black'>{product.productName}</td>
+									<td className='border border-black text-sm font-medium'>
+										{product.productName}
+									</td>
+									<td className='border border-black text-sm w-32'>
+										{product.productType.productTypeName}
+									</td>
 									<td className='border border-black'>
 										{product.flexibleProductAmount}
 									</td>
 									<td className='border border-black'>
 										{getFormattedDate(product.productExpirationDate)}
 									</td>
-									<td className='border border-black w-96'>
+									<td className='border border-black text-sm w-72'>
 										{product.productObservations}
 									</td>
 								</tr>

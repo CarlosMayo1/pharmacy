@@ -16,6 +16,12 @@ const ProductsInSelectedContainer = () => {
 		setIsOpen(true)
 	}
 
+	const getFormattedDate = date => {
+		const newDate = date.split('-')
+		const currentDate = [newDate[2], newDate[1], newDate[0]]
+		return currentDate.join('/')
+	}
+
 	return (
 		<div className='mb-2'>
 			<div>
@@ -39,7 +45,7 @@ const ProductsInSelectedContainer = () => {
 									{product.productContainerAmount}
 								</td>
 								<td className='border border-black text-sm'>
-									{product.products.productExpirationDate}
+									{getFormattedDate(product.products.productExpirationDate)}
 								</td>
 								<td className='border border-black p-1.5'>
 									<button

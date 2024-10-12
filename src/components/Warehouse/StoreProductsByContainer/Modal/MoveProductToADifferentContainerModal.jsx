@@ -9,8 +9,8 @@ import {
 	deleteProductStoreInContainer,
 } from '../../../../utils/warehouse/warehouse'
 import { warehouseSliceAction } from '../../../../store/warehouseSlice/warehouseSlice'
-import { FORM_MESSAGE } from '../../../../constants/constants'
 import SmallSpinner from '../../../UI/Spinner/SmallSpinner'
+import toast from 'react-hot-toast'
 
 const MoveProductOtADifferentContainerModal = ({ isOpen, setIsOpen }) => {
 	const availableContainers = useSelector(
@@ -49,12 +49,8 @@ const MoveProductOtADifferentContainerModal = ({ isOpen, setIsOpen }) => {
 				selectedProductToBeMoved.productContainerId,
 			)
 			if (error !== null) {
-				dispatch(
-					warehouseSliceAction.showFormMessage({
-						status: FORM_MESSAGE.error,
-						message: FORM_MESSAGE.updateError,
-					}),
-				)
+				// error message
+				toast.error('Error al mover el producto')
 				return
 			}
 		} else {
@@ -70,12 +66,8 @@ const MoveProductOtADifferentContainerModal = ({ isOpen, setIsOpen }) => {
 			)
 
 			if (error !== null) {
-				dispatch(
-					warehouseSliceAction.showFormMessage({
-						status: FORM_MESSAGE.error,
-						message: FORM_MESSAGE.updateError,
-					}),
-				)
+				// error message
+				toast.error('Error al actulizar la cantidad del product')
 				return
 			}
 
@@ -84,12 +76,8 @@ const MoveProductOtADifferentContainerModal = ({ isOpen, setIsOpen }) => {
 				selectedProductToBeMoved.productContainerId,
 			)
 			if (deleted !== null) {
-				dispatch(
-					warehouseSliceAction.showFormMessage({
-						status: FORM_MESSAGE.error,
-						message: FORM_MESSAGE.deleteError,
-					}),
-				)
+				// error message
+				toast.error('Error al eliminar el producto')
 				return
 			}
 		}
@@ -98,12 +86,8 @@ const MoveProductOtADifferentContainerModal = ({ isOpen, setIsOpen }) => {
 			selectedContainer.containerId,
 		)
 		dispatch(warehouseSliceAction.productsInSelectedContainer(products))
-		dispatch(
-			warehouseSliceAction.showFormMessage({
-				status: FORM_MESSAGE.success,
-				message: FORM_MESSAGE.insert,
-			}),
-		)
+		// successful message
+		toast.success('El producto ha sido movido correctamente')
 
 		setSendingData(false)
 		setIsOpen(false)

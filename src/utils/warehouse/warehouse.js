@@ -7,7 +7,7 @@ export const fetchProducts = async () => {
 	const { data, error } = await supabase
 		.from('products')
 		.select(
-			'productId, productName, flexibleProductAmount, productExpirationDate, productObservations',
+			'productId, productName, productType:productTypeId(productTypeId, productTypeName), flexibleProductAmount, productExpirationDate, productObservations',
 		)
 		.neq('isStored', 1)
 		.order('productName', { ascending: true })
@@ -133,6 +133,18 @@ export const insertDispatchedProduct = async product => {
 // ==============================
 // UPDATE FUNCTIONS
 // ==============================
+export const updateAmountOfSelectedProduct = async (
+	productAmount,
+	productId,
+) => {
+	const { error } = await supabase
+		.from('products')
+		.update({ flexibleProductAmount: productAmount })
+		.eq('productId', productId)
+
+	return error
+}
+
 export const updateProductAmountInSelectedContainer = async (
 	productId,
 	containerId,
