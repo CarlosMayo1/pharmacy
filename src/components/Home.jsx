@@ -12,20 +12,22 @@ function Home() {
 							<li>
 								<Link to='/'>Inicio</Link>
 							</li>
+							<li className='font-bold'>Ventas</li>
+							<li className='ml-2'>
+								<Link to='store'>Venta</Link>
+							</li>
 							<li className='font-bold'>Productos</li>
 							<li className='ml-2'>
 								<Link to='list-products'>Catálogo de productos</Link>
 							</li>
 							<li className='font-bold'>Almacen</li>
 							<li className='ml-2'>
-								<Link to='new-product'>Nuevo producto</Link>
+								<Link to='store-product'>Almacenar</Link>
 							</li>
 							<li className='ml-2'>
 								<Link to='products'>Productos</Link>
 							</li>
-							<li className='ml-2'>
-								<Link to='store-product-by-container'>Almacenar</Link>
-							</li>
+
 							<li className='ml-2'>
 								<Link to='product-refill'>Rellenar producto</Link>
 							</li>
