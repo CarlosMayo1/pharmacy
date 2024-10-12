@@ -51,6 +51,7 @@ const StoreProductsByContainer = () => {
 			//fetch producs in selected container from supabase
 			const productsInSelectedContainer =
 				await fetchProductsInSelectedContainer(container.containerId)
+			console.log(productsInSelectedContainer)
 			dispatch(
 				warehouseSliceAction.productsInSelectedContainer(
 					productsInSelectedContainer,
@@ -75,6 +76,12 @@ const StoreProductsByContainer = () => {
 		dispatch(warehouseSliceAction.selectedContainerInfo(containerInfo))
 
 		fetchProductsInSelectedContainerFromSupabase(containerInfo)
+	}
+
+	const getFormattedDate = date => {
+		const newDate = date.split('-')
+		const currentDate = [newDate[2], newDate[1], newDate[0]]
+		return currentDate.join('/')
 	}
 
 	useEffect(() => {
@@ -104,18 +111,22 @@ const StoreProductsByContainer = () => {
 							<tr>
 								<th className='border border-black'>Producto</th>
 								<th className='border border-black'>Cantidad</th>
-								<th className='border border-black'>Fecha de vencimiento</th>
+								<th className='border border-black'>Vencimiento</th>
+								<th className='border border-black'>Observaciones</th>
 							</tr>
 						</thead>
 						<tbody>
 							{productsToBeStored.map(product => (
-								<tr key={product.productAmount}>
+								<tr key={product.productId}>
 									<td className='border border-black'>{product.productName}</td>
 									<td className='border border-black'>
-										{product.productAmount}
+										{product.flexibleProductAmount}
 									</td>
 									<td className='border border-black'>
-										{product.productExpirationDate}
+										{getFormattedDate(product.productExpirationDate)}
+									</td>
+									<td className='border border-black w-96'>
+										{product.productObservations}
 									</td>
 								</tr>
 							))}
@@ -152,17 +163,6 @@ const StoreProductsByContainer = () => {
 							))}
 						</tbody>
 					</table>
-				</div>
-				{/* Open different modals */}
-				<div className='ml-4'>
-					<h2 className='font-bold'>Crear:</h2>
-					<ul className='flex flex-col border border-black p-2'>
-						<li>Nueva Categoría </li>
-						<li>Nueva Marca </li>
-						<li>Nuevo Tipo de Producto </li>
-						<li>Nuevo Contenedor </li>
-						<li>Nuevo Tipo de Contenedor </li>
-					</ul>
 				</div>
 				{showContainerModal && (
 					<StoreProductByContainerModal

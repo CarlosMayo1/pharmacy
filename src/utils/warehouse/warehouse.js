@@ -6,8 +6,11 @@ import { supabase } from '../supabase.client'
 export const fetchProducts = async () => {
 	const { data, error } = await supabase
 		.from('products')
-		.select('productId, productName, productAmount, productExpirationDate')
+		.select(
+			'productId, productName, flexibleProductAmount, productExpirationDate, productObservations',
+		)
 		.neq('isStored', 1)
+		.order('productName', { ascending: true })
 	return data
 }
 
@@ -38,7 +41,7 @@ export const fetchProductsInSelectedContainer = async containerId => {
 	const { data, error } = await supabase
 		.from('product_container')
 		.select(
-			'productContainerId, containerId, productId, products:productTypeId(productName, productExpirationDate), productContainerAmount',
+			'productContainerId, containerId, productId, products:productId(productName, productExpirationDate), productContainerAmount',
 		)
 		.eq('containerId', containerId)
 	return data
