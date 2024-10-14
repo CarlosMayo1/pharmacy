@@ -108,11 +108,11 @@ const StoreProductsByContainer = () => {
 					<table>
 						<thead>
 							<tr>
-								<th className='border border-black'>Producto</th>
-								<th className='border border-black'>Tipo</th>
-								<th className='border border-black'>Disponible</th>
-								<th className='border border-black'>Vencimiento</th>
-								<th className='border border-black'>Observaciones</th>
+								<th className='border border-black text-sm'>Producto</th>
+								<th className='border border-black text-sm'>Tipo</th>
+								<th className='border border-black text-sm'>Disponible</th>
+								<th className='border border-black text-sm'>Vencimiento</th>
+								<th className='border border-black text-sm'>Observaciones</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -124,10 +124,10 @@ const StoreProductsByContainer = () => {
 									<td className='border border-black text-sm w-32'>
 										{product.productType.productTypeName}
 									</td>
-									<td className='border border-black'>
+									<td className='border border-black text-sm'>
 										{product.flexibleProductAmount}
 									</td>
-									<td className='border border-black'>
+									<td className='border border-black text-sm'>
 										{getFormattedDate(product.productExpirationDate)}
 									</td>
 									<td className='border border-black text-sm w-72'>

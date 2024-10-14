@@ -18,7 +18,7 @@ export const fetchProductsWithAllInfo = async () => {
 	const { data, error } = await supabase
 		.from('product_container')
 		.select(
-			'productContainerId, productContainerAmount, containers:containerId(containerId,containerCode), products:productId(productId, productName, productExpirationDate, productType(productTypeId, productTypeName), productCategory(productCategoryId, productCategoryName))',
+			'productContainerId, productContainerAmount, containers:containerId(containerId,containerCode), products:productId(productId, productName, productExpirationDate, productType(productTypeId, productTypeName), productCategory(productCategoryId, productCategoryName)), productContainerObservations',
 		)
 		.neq('productContainerAmount', 0)
 

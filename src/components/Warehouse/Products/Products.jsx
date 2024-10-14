@@ -1,18 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import { fetchProductsWithAllInfo } from '../../../utils/warehouse/warehouse'
 import { supabase } from '../../../utils/supabase.client'
 import { useForm } from 'react-hook-form'
 import Spinner from '../../UI/Spinner/Spinner'
 import ProductContainerModal from './ProductContainerModal'
-
-// Supabase
-const fetchProducts = async () => {
-	const { error, data } = await supabase
-		.from('product_container')
-		.select(
-			'productContainerId, productId, products:productId(productName, productExpirationDate, productBrand:productBrandId(productBrandId, productBrandName), productType:productTypeId(productTypeId, productTypeName), productObservations), containers:containerId(containerId, containerCode), productContainerAmount',
-		)
-	return data
-}
+import DispatchProductModal from './Modal/DispatchProductModal'
+import { warehouseSliceAction } from '../../../store/warehouseSlice/warehouseSlice'
 
 const fetchFilteredProductsByName = async productName => {
 	const { error, data } = await supabase
@@ -188,12 +182,31 @@ const fetchContainers = async () => {
 }
 
 const Products = () => {
-	const [products, setProducts] = useState([])
+	// const [products, setProducts] = useState([])
 	const [containers, setContainers] = useState([])
 	const [selectedProduct, setSelectedProduct] = useState({})
 	const [loading, setLoading] = useState(true)
 	const [showContainerModal, setShowContainerModal] = useState(false)
+	const [showDispathModal, setShowDispatchModal] = useState()
 	const { handleSubmit, register } = useForm()
+	const products = useSelector(
+		state => state.warehouseReducer.productsToBeStored,
+	)
+	const dispatch = useDispatch()
+
+	// =========================
+	// FUNCTIONS WITH SUPABASE
+	// =========================
+	const fetchProductsFromSupabase = async () => {
+		try {
+			const products = await fetchProductsWithAllInfo()
+			console.log(products)
+			dispatch(warehouseSliceAction.productsToBeStored(products))
+			setLoading(false)
+		} catch (error) {
+			throw new Error(error)
+		}
+	}
 
 	const onFilteredProductsHandler = handleSubmit(data => {
 		setLoading(true)
@@ -421,19 +434,37 @@ const Products = () => {
 		setSelectedProduct(product)
 	}
 
+	const openDispatchProductModal = () => {
+		setShowDispatchModal(true)
+	}
+
+	const getFormattedDate = date => {
+		const newDate = date.split('-')
+		const currentDate = [newDate[2], newDate[1], newDate[0]]
+		return currentDate.join('/')
+	}
+
 	useEffect(() => {
-		fetchProducts().then(response => {
-			setLoading(false)
-			setProducts(response)
-		})
+		fetchProductsFromSupabase()
 	}, [])
 
 	return (
 		<section>
+			{showDispathModal && (
+				<DispatchProductModal
+					isOpen={showDispathModal}
+					setShowDispatchModal={setShowDispatchModal}
+				/>
+			)}
 			<h1 className='text-lg py-2 font-bold'>Lista de productos</h1>
 			<div className='mb-2'>
-				<p>Cantidad de productos totales 21</p>
-				<p>Productos pendientes por almacenar 4</p>
+				<button
+					type='button'
+					className='bg-red-500 font-medium text-white rounded-md p-1.5'
+					onClick={openDispatchProductModal}
+				>
+					Despachar producto
+				</button>
 			</div>
 			<div className='mb-2 border border-black p-2'>
 				<form onSubmit={onFilteredProductsHandler}>
@@ -504,37 +535,37 @@ const Products = () => {
 				<table className='border border-black'>
 					<thead>
 						<tr>
-							<th className='border border-black'>Nombre</th>
-							<th className='border border-black'>Tipo</th>
-							<th className='border border-black'>Cantidad</th>
-							<th className='border border-black'>Vencimiento</th>
-							<th className='border border-black'>Observaciones</th>
-							<th className='border border-black'>Contenedor</th>
-							<th className='border border-black'>Acción</th>
+							<th className='border border-black text-sm'>Nombre</th>
+							<th className='border border-black text-sm'>Tipo</th>
+							<th className='border border-black text-sm'>Disponible</th>
+							<th className='border border-black text-sm'>Vencimiento</th>
+							<th className='border border-black text-sm'>Observaciones</th>
+							<th className='border border-black text-sm'>Contenedor</th>
+							<th className='border border-black text-sm'>Acción</th>
 						</tr>
 					</thead>
 					<tbody>
 						{products.map(product => (
 							<tr key={product.productContainerId}>
-								<td className='border border-black'>
+								<td className='border border-black text-sm w-44 font-medium'>
 									{product.products.productName}
 								</td>
-								<td className='border border-black'>
+								<td className='border border-black text-sm w-36'>
 									{product.products.productType.productTypeName}
 								</td>
-								<td className='border border-black'>
+								<td className='border border-black text-sm'>
 									{product.productContainerAmount}
 								</td>
-								<td className='border border-black'>
-									{product.products.productExpirationDate}
+								<td className='border border-black text-sm'>
+									{getFormattedDate(product.products.productExpirationDate)}
 								</td>
-								<td className='border border-black'>
-									{product.products.productObservations}
+								<td className='border border-black text-sm w-96'>
+									{product.productContainerObservations}
 								</td>
-								<td className='border border-black'>
+								<td className='border border-black text-sm'>
 									{product.containers.containerCode}
 								</td>
-								<td className='border border-black'>
+								<td className='border border-black text-sm'>
 									<div>
 										<button
 											className='bg-blue-400 px-2 py-1.5 text-sm text-white font-bold rounded-md'
